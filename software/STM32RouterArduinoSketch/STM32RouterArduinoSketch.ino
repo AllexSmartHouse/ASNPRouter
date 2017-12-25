@@ -118,8 +118,10 @@ void loop() {
   }
   sysMsgHandler->update(dt);
 
+  bool canSleep = true;
   for (int i = 0; i<PORTS_COUNT; ++i){
-    ports[i]->startSending();
+    if (ports[i]->startSending())
+      canSleep = false;
   }
   
 
@@ -159,11 +161,13 @@ void loop() {
         onLed();
       }
       else{
-        offLed();
-        delay(10);
+          offLed();
+        if (canSleep)
+          delay(10);
       }
     }
   }
 }
+
 
 

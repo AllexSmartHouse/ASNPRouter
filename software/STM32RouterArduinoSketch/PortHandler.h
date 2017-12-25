@@ -20,12 +20,11 @@ const uint8_t PING_BROADCAST[6] = {START_CHAR_HIGH, BROADCAST_ADDRESS,0x02,     
 
 class cPortHandler{
   public:
-    static const long SEND_BUFFER_SIZE = 256;
+    static const long SEND_BUFFER_SIZE = 2048;
     static const long HALF_SEND_BUFFER_SIZE = SEND_BUFFER_SIZE / 2;
   
-    static const long MAX_PACKAGE_SIZE = 60;
     static const long PACKAGE_SERVICE_DATA_SIZE = 1+1+1+1; //PACKAGE_START_CHAR + ADDRESS + DATA_SIZE + CHECKSUM
-    static const long MAX_PACKAGE_DATA_SIZE = 60;
+    static const long MAX_PACKAGE_DATA_SIZE = 255;
     static const long PACKAGE_BUFFER_SIZE = MAX_PACKAGE_DATA_SIZE + PACKAGE_SERVICE_DATA_SIZE;
 
     enum eWaitState{
@@ -45,7 +44,7 @@ class cPortHandler{
     uint8_t         m_Checksum;
     eWaitState      m_ReceiverState;
 
-    Stream*         m_Stream;
+    SerialUART*     m_Stream;
     cProtocolListenersList m_ListenersList;
 
     bool            m_Overflow;
@@ -53,7 +52,7 @@ class cPortHandler{
 
     long            m_TimeFromLastData;
   public:
-    cPortHandler(Stream* serial);
+    cPortHandler(SerialUART* serial);
 
     ~cPortHandler(){
       delete [] m_SendBuffer;
@@ -62,7 +61,7 @@ class cPortHandler{
     
     void queuePackage(const uint8_t* data);
     
-    void startSending();
+    bool startSending();
 
     bool processData(long dt);
     
@@ -82,3 +81,4 @@ class cPortHandler{
 };
 
 #endif
+

@@ -10,7 +10,7 @@ const uint8_t SYSMSG_TRACE_START  = 0x10;
 const uint8_t SYSMSG_TRACE_STEP   = 0x11;
 const uint8_t SYSMSG_TRACE_STATE  = 0x12;
 
-const uint8_t SYSMSG_PONG = 0x00;
+const uint8_t SYSMSG_PONG = 0x01;
 
 const long TRACE_TIMEOUT = 500;
 
@@ -50,3 +50,4 @@ public:
 };
 
 #endif
+

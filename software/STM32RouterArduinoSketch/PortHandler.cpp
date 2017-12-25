@@ -1,11 +1,9 @@
 #include "PortHandler.h"
 
-const int MAX_SEND_FRAME_SIZE = 64;
-
 const long DATA_TIMEOUT = 500;
 
 
-cPortHandler::cPortHandler(Stream* serial){
+cPortHandler::cPortHandler(SerialUART* serial){
   m_Stream = serial;
   m_SendBufferSize = 0;
   m_ReceiveBufferSize = 0;
@@ -16,6 +14,7 @@ cPortHandler::cPortHandler(Stream* serial){
 
   m_Overflow = false;
   m_DataError = false;
+  setAddressEnable(BROADCAST_ADDRESS);
 }
 
 
@@ -80,7 +79,7 @@ bool cPortHandler::processData(long dt){
         m_ReceiverState = WAIT_LENGTH;
       };break;
       case WAIT_LENGTH:{
-        if (c<=MAX_PACKAGE_SIZE){
+        if (c<=MAX_PACKAGE_DATA_SIZE){
           receive(c,false);          
           m_ReceiverState = WAIT_CHECKSUM;
         }
@@ -91,10 +90,11 @@ bool cPortHandler::processData(long dt){
         }
       };break;
       case WAIT_CHECKSUM:{
+        uint8_t currentChecksum = m_Checksum;
         receive(c,false);
         if (m_ReceiveBuffer[LENGTH_POS]==m_ReceiveBufferSize-LENGTH_POS-2){        
           m_ReceiverState = WAIT_START;
-          if (c==m_Checksum-c){            
+          if (c==currentChecksum){            
             m_DataError = false; 
             //DATA READY
             return true;  
@@ -110,16 +110,18 @@ bool cPortHandler::processData(long dt){
   return false;
 }
 
-void cPortHandler::startSending(){
+bool cPortHandler::startSending(){
   m_Overflow = false;
   if (m_SendBufferSize==0)
-    return;
+    return false;
+
+  long maxWriteCount = m_Stream->availableForWrite();
+  if (maxWriteCount==0)
+    return false;
     
-  m_Stream->flush();  
-  
   int dataToSend = m_SendBufferSize;
-  if (dataToSend>MAX_SEND_FRAME_SIZE){
-    dataToSend = MAX_SEND_FRAME_SIZE;
+  if (dataToSend>maxWriteCount){
+    dataToSend = maxWriteCount;
   }
 
   m_Stream->write(m_SendBuffer,dataToSend);
@@ -130,5 +132,7 @@ void cPortHandler::startSending(){
   else{
     m_SendBufferSize = 0;
   }
+  return true;
 }
+
 
